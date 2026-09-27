@@ -47,6 +47,12 @@ Les tests vérifient également le décodage Base64/gzip, le texte Unicode et le
 
 Sans npm, utiliser directement `node --test`.
 
+## Analyse globale des étapes
+
+Le bouton **Analyser toutes les requêtes — Top 10**, sous le tableau, classe les dix occurrences d’étapes les plus longues de tous les headers profilés du HAR. L’analyse ignore le filtre de recherche du tableau et couvre tous les niveaux, parents et feuilles, en conservant les durées inclusives d’origine. Les noms identiques ne sont pas regroupés ; les égalités conservent l’ordre du HAR, des headers puis des lignes.
+
+Chaque résultat affiche son chemin dans le profiler, sa durée, l’URL et le numéro de la requête dans le HAR. **Voir la requête et l’étape** ouvre le détail d’origine, déplie les ancêtres et surligne l’occurrence exacte, même si plusieurs requêtes partagent une URL ou plusieurs étapes un nom. Les headers non décodables et lignes non reconnues sont comptabilisés. Un nouvel import ou « Retirer » efface le classement précédent.
+
 ## Documentation
 
 Le format de profilage reconnu est `==Nom de l’étape == 55ms`. Chaque paire de `=` initiale ajoute un niveau (`==`, `====`, `======`…). Les niveaux sautés sont rattachés au dernier ancêtre moins profond, sans inventer d’étapes. Les durées affichées sont celles du fichier, sans additionner parents et enfants. Les lignes non reconnues sont signalées et restent consultables.

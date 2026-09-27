@@ -2,6 +2,7 @@ import { parseHar } from './har.js';
 import { decodeProfiler } from './profiler.js';
 import { profilerView, rawSection } from './profiler-view.js';
 import { profilerText, sortRequests } from './request-sort.js';
+import { analyzeProfilers } from './profiler-analysis.js';
 
 const $ = id => document.getElementById(id);
 let data = null;
@@ -20,17 +21,52 @@ function duration(time) {
   return time === null ? '—' : `${Math.round(time).toLocaleString('fr-FR')} ms`;
 }
 
-function showDetail(entry) {
+function showDetail(entry, target = null) {
   const content = $('detail-content');
   content.replaceChildren();
   content.append(el('p', `${entry.method} · ${entry.status ?? '—'} · ${duration(entry.time)}`), el('p', entry.url));
   entry.decodedProfiler.forEach((result, index) => {
     content.append(el('h3', `EXPLORATEUR DU PROFILER${entry.profiler.length > 1 ? ` (${index + 1})` : ''}`));
-    content.append(result.error ? el('p', result.error, 'error') : profilerView(result.text));
+    content.append(result.error ? el('p', result.error, 'error') : profilerView(result.text, target?.headerIndex === index ? target.line : null));
   });
   content.append(rawSection('Valeur brute — Base64', entry.profiler.map(value => value || '(valeur vide)').join('\n')));
   content.append(rawSection('Tous les headers de réponse', entry.headers.map(header => `${header?.name ?? ''}: ${header?.value ?? ''}`).join('\n')));
   $('details').showModal();
+  const selected = content.querySelector('.profiler-selected');
+  if (selected) {
+    selected.focus({ preventScroll: true });
+    selected.scrollIntoView({ block: 'center' });
+  }
+}
+
+function resetAnalysis() {
+  $('analysis-results').hidden = true;
+  $('analysis-list').replaceChildren();
+  $('analysis-summary').textContent = '';
+}
+
+function showAnalysis() {
+  if (!data) return;
+  const analysis = analyzeProfilers(data.matches);
+  $('analysis-list').replaceChildren();
+  $('analysis-summary').textContent = `${analysis.steps} étapes analysées dans ${analysis.requests} requêtes profilées sur ${data.total} requêtes HAR. ${analysis.invalidHeaders} header(s) non décodable(s), ${analysis.unparsedLines} ligne(s) non reconnue(s).`;
+  analysis.top.forEach((item, index) => {
+    const card = el('li', undefined, 'analysis-item');
+    const heading = el('div', undefined, 'analysis-item-heading');
+    heading.append(el('span', String(index + 1).padStart(2, '0'), 'analysis-rank'), el('strong', item.name), el('span', `${item.time.toLocaleString('fr-FR', { maximumFractionDigits: 20 })} ms`, 'profiler-time'));
+    const path = el('p', item.path.join(' › '), 'analysis-path');
+    const source = el('div', undefined, 'analysis-source');
+    const label = `Requête HAR #${item.entry.id + 1} · ${item.entry.method} ${item.entry.url || '(URL absente)'} · Header ${item.headerIndex + 1}, ligne ${item.line}`;
+    const button = el('button', 'Voir la requête et l’étape ↗', 'button secondary');
+    button.type = 'button';
+    button.setAttribute('aria-label', `Voir ${item.name} dans la requête HAR ${item.entry.id + 1}, header ${item.headerIndex + 1}, ligne ${item.line}`);
+    button.addEventListener('click', () => showDetail(item.entry, item));
+    source.append(el('span', label), button);
+    card.append(heading, path, source);
+    $('analysis-list').append(card);
+  });
+  $('analysis-empty').hidden = analysis.top.length > 0;
+  $('analysis-results').hidden = false;
 }
 
 function render() {
@@ -47,6 +83,7 @@ function render() {
   $('ratio').textContent = data ? `${data.total ? Math.round(matches.length / data.total * 100) : 0} %` : '—';
   $('count').textContent = filtered.length;
   $('search').disabled = !data;
+  $('analyze').disabled = !data;
   $('rows').replaceChildren();
   const fragment = document.createDocumentFragment();
   filtered.forEach(entry => {
@@ -100,6 +137,7 @@ async function load(text, name, size, demo, current) {
   }
   if (current !== generation) return;
   data = parsed;
+  resetAnalysis();
   $('search').value = '';
   $('file-name').textContent = name;
   $('file-size').textContent = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(1)} Mo` : `${Math.max(1, Math.round(size / 1024))} Ko`;
@@ -152,6 +190,7 @@ $('dropzone').addEventListener('drop', event => {
   importFile(event.dataTransfer.files[0]);
 });
 $('search').addEventListener('input', render);
+$('analyze').addEventListener('click', showAnalysis);
 document.querySelectorAll('[data-sort]').forEach(button => {
   button.addEventListener('click', () => {
     sortDirection = sortKey === button.dataset.sort && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -162,6 +201,7 @@ document.querySelectorAll('[data-sort]').forEach(button => {
 $('clear').addEventListener('click', () => {
   generation++;
   data = null;
+  resetAnalysis();
   $('file').value = '';
   $('search').value = '';
   $('file-info').hidden = true;

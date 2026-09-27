@@ -75,6 +75,8 @@ Le détail est une boîte de dialogue native. Les chaînes provenant du HAR sont
 
 ## Hébergement
 
+L’analyse globale est implémentée dans `profiler-analysis.js` et testée dans `profiler-analysis.test.js`. Elle parcourt tous les arbres de `data.matches` avec une pile, conserve au plus dix candidats, et retourne les compteurs de couverture et d’erreurs. Chaque candidat conserve la référence à la requête, l’index du header et le numéro de ligne du texte décompressé. `parseProfiler()` expose ce numéro dans `line`. Le détail utilise cette identité pour ouvrir les ancêtres et mettre le focus sur l’étape choisie. L’analyse est synchrone et reste locale ; de très grands fichiers peuvent bloquer temporairement l’interface.
+
 L’application peut être servie par un hébergement statique, sans compilation ni backend. Les ressources utilisent des chemins relatifs, ce qui permet un hébergement dans un sous-répertoire.
 
-Les fichiers nécessaires à la publication sont `index.html`, `styles.css`, `app.js`, `har.js`, `profiler.js`, `profiler-view.js` et `request-sort.js`. Servir les fichiers JavaScript avec un type MIME compatible, par exemple `text/javascript`. Ne pas publier les captures locales ni les métadonnées Git.
+Les fichiers nécessaires à la publication sont `index.html`, `styles.css`, `app.js`, `har.js`, `profiler.js`, `profiler-view.js`, `profiler-analysis.js` et `request-sort.js`. Servir les fichiers JavaScript avec un type MIME compatible, par exemple `text/javascript`. Ne pas publier les captures locales ni les métadonnées Git.

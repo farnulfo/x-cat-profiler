@@ -46,5 +46,6 @@ Pour une modification de l’interface, vérifier manuellement :
 8. Un header Base64 ou gzip invalide affiche une erreur sur sa ligne, sans bloquer les valeurs valides du fichier.
 9. Déplier et replier les étapes, individuellement et avec les boutons globaux, fonctionne à la souris et au clavier. Les durées nulles, les noms répétés et les niveaux sautés sont conservés.
 10. Cliquer deux fois sur chaque en-tête vérifie les deux sens de tri. Une recherche conserve le tri actif et chaque bouton de détail ouvre toujours la requête de sa ligne.
+11. L’analyse globale de l’exemple compte 35 étapes dans 5 requêtes profilées, même si la recherche masque toutes les lignes. Elle affiche dix résultats. Cliquer sur un résultat ouvre la bonne requête et surligne l’étape dans l’explorateur. Un nouvel import et « Retirer » effacent le classement.
 
 Les tests automatisés couvrent le parseur ; ils ne remplacent pas une vérification de l’interface dans le navigateur.

@@ -35,6 +35,14 @@
       <div id="empty" class="empty"><div class="empty-icon" aria-hidden="true">⌁</div><h3>Tout commence par un fichier HAR</h3><p>Importez votre capture réseau pour explorer<br>les requêtes contenant <code>x-cat-profiler</code>.</p></div>
       <div class="results-footer"><span id="result-summary" role="status" aria-live="polite">En attente d’un fichier</span><span><span class="green-dot"></span> Headers de réponse uniquement</span></div>
     </section>
+    <div class="analysis-actions"><button id="analyze" type="button" class="button primary" disabled>Analyser toutes les requêtes — Top 10</button><span>Analyse complète, indépendamment du filtre du tableau.</span></div>
+    <section id="analysis-results" class="analysis-results" aria-labelledby="analysis-title" hidden>
+      <h2 id="analysis-title">Top 10 des étapes les plus longues</h2>
+      <p class="analysis-note">Durées inclusives, sous-étapes comprises. Chaque occurrence est classée séparément, y compris les étapes parentes.</p>
+      <p id="analysis-summary" role="status" aria-live="polite"></p>
+      <ol id="analysis-list" class="analysis-list"></ol>
+      <p id="analysis-empty" hidden>Aucune étape exploitable dans les réponses profilées de ce fichier.</p>
+    </section>
     <aside class="help"><span class="info-icon" aria-hidden="true">i</span><div><h3>Comment obtenir un fichier HAR ?</h3><p>Ouvrez les outils de développement de votre navigateur → <strong>Réseau / Network</strong> → rechargez la page,<br class="desktop-break"> puis exportez les requêtes au format HAR.</p></div><span class="help-tag">ASTUCE</span></aside>
     <footer><span>Moins de bruit. Plus de visibilité.</span><span>Analyse locale <span>·</span> Vos données restent dans votre navigateur</span></footer>
   </main>
