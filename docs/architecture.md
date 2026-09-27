@@ -9,6 +9,8 @@
 ├── app.js              # Import, état, recherche et rendu de l’interface
 ├── har.js              # Lecture et filtrage des données HAR
 ├── har.test.js         # Tests du parseur avec node:test
+├── profiler.js         # Décodage Base64, décompression gzip et lecture UTF-8
+├── profiler.test.js    # Tests du décodage et des données invalides
 ├── package.json        # Commandes pratiques, sans dépendances
 ├── README.md           # Installation et utilisation
 ├── CONTRIBUTING.md     # Développement et vérifications
@@ -22,7 +24,8 @@
 2. `parseHar()` analyse le JSON et vérifie que `log.entries` est un tableau.
 3. Pour chaque entrée, seuls les éléments de `response.headers` sont examinés. Le nom doit être exactement `x-cat-profiler`, sans tenir compte de la casse.
 4. Le parseur retourne le nombre total d’entrées et les requêtes correspondantes.
-5. L’interface affiche les statistiques, applique la recherche et construit les lignes du tableau.
+5. Chaque valeur est décodée avec `atob`, décompressée via `DecompressionStream('gzip')`, puis lue avec `TextDecoder` en UTF-8 strict. L’interface ajoute `decodedProfiler` à chaque correspondance : une liste de résultats `{ text, error }`, dans l’ordre des valeurs brutes. Une erreur reste propre à la valeur concernée.
+6. L’interface affiche le texte décompressé, les statistiques et les résultats de recherche. Le détail conserve aussi les valeurs Base64 originales.
 
 Un header présent uniquement dans la requête n’est pas une correspondance. Un header de réponse avec une valeur vide est une correspondance. Si le header est répété, toutes ses valeurs sont conservées.
 
@@ -49,7 +52,7 @@ Le parseur lève une erreur pour un JSON invalide ou une structure sans tableau 
 
 L’analyse courante reste en mémoire. Un import valide remplace l’analyse précédente et réinitialise la recherche. Un import invalide affiche une erreur et conserve les résultats précédents. Un compteur de génération évite qu’une lecture de fichier ancienne remplace une action plus récente.
 
-La recherche compare sans tenir compte de la casse l’URL, la méthode, le statut et les valeurs de `x-cat-profiler`. Les statistiques portent sur l’intégralité du fichier, même lorsqu’une recherche réduit la liste affichée.
+La recherche compare sans tenir compte de la casse l’URL, la méthode, le statut et les valeurs brutes et décompressées de `x-cat-profiler`. Les statistiques portent sur l’intégralité du fichier, même lorsqu’une recherche réduit la liste affichée. La décompression est asynchrone ; le compteur de génération empêche également un résultat de décompression ancien de remplacer une analyse plus récente.
 
 Le détail est une boîte de dialogue native. Les chaînes provenant du HAR sont insérées avec `textContent`, sans interprétation HTML. Aucune URL importée n’est automatiquement ouverte ou appelée.
 
@@ -65,4 +68,4 @@ Le détail est une boîte de dialogue native. Les chaînes provenant du HAR sont
 
 L’application peut être servie par un hébergement statique, sans compilation ni backend. Les ressources utilisent des chemins relatifs, ce qui permet un hébergement dans un sous-répertoire.
 
-Les fichiers nécessaires à la publication sont `index.html`, `styles.css`, `app.js` et `har.js`. Servir les fichiers JavaScript avec un type MIME compatible, par exemple `text/javascript`. Ne pas publier les captures locales ni les métadonnées Git.
+Les fichiers nécessaires à la publication sont `index.html`, `styles.css`, `app.js`, `har.js` et `profiler.js`. Servir les fichiers JavaScript avec un type MIME compatible, par exemple `text/javascript`. Ne pas publier les captures locales ni les métadonnées Git.

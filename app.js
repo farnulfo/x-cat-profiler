@@ -1,4 +1,5 @@
 import { parseHar } from './har.js';
+import { decodeProfiler } from './profiler.js';
 
 const $ = id => document.getElementById(id);
 let data = null;
@@ -19,7 +20,11 @@ function showDetail(entry) {
   const content = $('detail-content');
   content.replaceChildren();
   content.append(el('p', `${entry.method} · ${entry.status ?? '—'} · ${duration(entry.time)}`), el('p', entry.url));
-  content.append(el('h3', 'X-CAT-PROFILER'), el('pre', entry.profiler.map(value => value || '(valeur vide)').join('\n')));
+  entry.decodedProfiler.forEach((result, index) => {
+    content.append(el('h3', `X-CAT-PROFILER — CONTENU DÉCOMPRESSÉ${entry.profiler.length > 1 ? ` (${index + 1})` : ''}`));
+    content.append(result.error ? el('p', result.error, 'error') : el('pre', result.text === '' ? '(contenu vide)' : result.text));
+  });
+  content.append(el('h3', 'VALEUR BRUTE — BASE64'), el('pre', entry.profiler.map(value => value || '(valeur vide)').join('\n')));
   content.append(el('h3', 'TOUS LES HEADERS DE RÉPONSE'));
   content.append(el('pre', entry.headers.map(header => `${header?.name ?? ''}: ${header?.value ?? ''}`).join('\n')));
   $('details').showModal();
@@ -28,7 +33,7 @@ function showDetail(entry) {
 function render() {
   const query = $('search').value.trim().toLowerCase();
   const matches = data?.matches ?? [];
-  const filtered = matches.filter(entry => [entry.url, entry.method, String(entry.status), ...entry.profiler].some(value => value.toLowerCase().includes(query)));
+  const filtered = matches.filter(entry => [entry.url, entry.method, String(entry.status), ...entry.profiler, ...entry.decodedProfiler.map(result => result.text ?? '')].some(value => value.toLowerCase().includes(query)));
   $('total').textContent = data ? data.total.toLocaleString('fr-FR') : '—';
   $('matched').textContent = data ? matches.length.toLocaleString('fr-FR') : '—';
   $('ratio').textContent = data ? `${data.total ? Math.round(matches.length / data.total * 100) : 0} %` : '—';
@@ -48,7 +53,7 @@ function render() {
     urlCell.append(el('div', path, 'url-path'), el('div', host, 'url-host'));
     const status = el('td', String(entry.status ?? '—'), `status ${entry.status >= 400 ? 'bad' : ''}`);
     const profiler = el('td');
-    const value = entry.profiler.join(', ') || '(valeur vide)';
+    const value = entry.decodedProfiler.map(result => result.error ? `⚠ ${result.error}` : result.text === '' ? '(contenu vide)' : result.text).join('\n');
     profiler.append(el('code', value));
     profiler.title = value;
     const action = el('td');
@@ -76,8 +81,16 @@ function render() {
   $('result-summary').textContent = data ? `${filtered.length} requête(s) affichée(s) sur ${matches.length} profilée(s)` : 'En attente d’un fichier';
 }
 
-function load(text, name, size, demo = false) {
+async function load(text, name, size, demo, current) {
   const parsed = parseHar(text);
+  for (const entry of parsed.matches) {
+    entry.decodedProfiler = [];
+    for (const value of entry.profiler) {
+      if (current !== generation) return;
+      entry.decodedProfiler.push(await decodeProfiler(value));
+    }
+  }
+  if (current !== generation) return;
   data = parsed;
   $('search').value = '';
   $('file-name').textContent = name;
@@ -88,7 +101,7 @@ function load(text, name, size, demo = false) {
   render();
 }
 
-async function importFile(file) {
+async function importFile(file, demo = false) {
   if (!file) return;
   const current = ++generation;
   $('error').hidden = true;
@@ -97,7 +110,7 @@ async function importFile(file) {
   try {
     const text = await file.text();
     if (current !== generation) return;
-    load(text, file.name, file.size);
+    await load(text, file.name, file.size, demo, current);
   } catch (error) {
     if (current !== generation) return;
     $('error').textContent = error.message || 'Impossible de lire ce fichier.';
@@ -151,17 +164,14 @@ document.addEventListener('keydown', event => {
   }
 });
 $('demo').addEventListener('click', () => {
-  generation++;
-  $('choose').disabled = false;
-  $('choose').textContent = '＋ Choisir un fichier';
   const paths = ['/api/products', '/api/products/42', '/api/cart', '/api/categories', '/api/search?q=cat', '/assets/app.css', '/favicon.ico', '/api/session'];
   const sample = { log: { version: '1.2', entries: paths.map((path, i) => ({
     request: { method: i === 2 ? 'POST' : 'GET', url: `https://demo.example.com${path}` },
     response: { status: i === 7 ? 401 : 200, headers: [
       { name: 'content-type', value: 'application/json' },
-      ...(i < 5 ? [{ name: i === 1 ? 'X-Cat-Profiler' : 'x-cat-profiler', value: `cat-${['a8f21c', 'b3e902', 'c17d4a', 'd9f310', 'e52a8b'][i]}` }] : []),
+      ...(i < 5 ? [{ name: i === 1 ? 'X-Cat-Profiler' : 'x-cat-profiler', value: 'H4sIAAAAAAACA3OtSM0tyElVSElVKCjKT8vMUbBSKDq8siA/rzhVIf3wyrzDK4HcVIXUPAUTI4XcYgC7HsjeMAAAAA==' }] : []),
     ] }, time: [124, 86, 218, 42, 167, 12, 8, 56][i],
   })) } };
   const text = JSON.stringify(sample);
-  load(text, 'exemple-boutique.har', new Blob([text]).size, true);
+  importFile(new File([text], 'exemple-boutique.har', { type: 'application/json' }), true);
 });

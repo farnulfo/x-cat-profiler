@@ -22,6 +22,7 @@ Si npm est installé, `npm start` lance le même serveur Python.
 - Consulter le nombre total de requêtes et les réponses avec le header recherché.
 - Filtrer par URL, méthode, statut ou valeur du header.
 - Ouvrir le détail d’une ligne pour voir la valeur complète et tous les headers de réponse.
+- Le header est décodé depuis Base64, puis décompressé avec gzip et lu en UTF-8. Le tableau affiche ce texte et la recherche porte aussi sur son contenu. Le détail conserve la valeur brute. Une valeur invalide affiche une erreur sans masquer les autres requêtes.
 - « Explorer un exemple » charge des données fictives pour essayer l’interface.
 
 Le filtre ne tient compte que des headers de **réponse**. Les valeurs vides et les headers répétés sont conservés. Le détail présente les valeurs complètes. Le raccourci `/` place le curseur dans la recherche et Échap ferme le détail.
@@ -39,6 +40,8 @@ npm test
 ```
 
 Tests du filtre sur les headers de réponse, de la casse, des valeurs vides et dupliquées, et des fichiers invalides.
+
+Les tests vérifient également le décodage Base64/gzip, le texte Unicode et les données invalides ou tronquées. La décompression utilise l’API native `DecompressionStream` : un navigateur qui ne la prend pas en charge affiche un message dans le détail.
 
 Sans npm, utiliser directement `node --test`.
 

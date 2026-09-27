@@ -42,5 +42,7 @@ Pour une modification de l’interface, vérifier manuellement :
 4. Un JSON invalide affiche une erreur ; un HAR sans correspondance affiche un état vide.
 5. « Retirer » réinitialise les résultats et permet un nouvel import.
 6. L’interface reste utilisable sur mobile et au clavier, notamment la fermeture du détail avec Échap.
+7. L’exemple affiche « Exemple de profil : réponse générée en 42 ms ». La recherche « générée » retrouve les 5 réponses profilées ; le détail présente aussi le Base64 brut.
+8. Un header Base64 ou gzip invalide affiche une erreur sur sa ligne, sans bloquer les valeurs valides du fichier.
 
 Les tests automatisés couvrent le parseur ; ils ne remplacent pas une vérification de l’interface dans le navigateur.
