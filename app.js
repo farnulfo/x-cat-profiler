@@ -1,9 +1,13 @@
 import { parseHar } from './har.js';
 import { decodeProfiler } from './profiler.js';
+import { profilerView, rawSection } from './profiler-view.js';
+import { profilerText, sortRequests } from './request-sort.js';
 
 const $ = id => document.getElementById(id);
 let data = null;
 let generation = 0;
+let sortKey = null;
+let sortDirection = 'asc';
 
 function el(tag, text, className) {
   const node = document.createElement(tag);
@@ -21,19 +25,23 @@ function showDetail(entry) {
   content.replaceChildren();
   content.append(el('p', `${entry.method} · ${entry.status ?? '—'} · ${duration(entry.time)}`), el('p', entry.url));
   entry.decodedProfiler.forEach((result, index) => {
-    content.append(el('h3', `X-CAT-PROFILER — CONTENU DÉCOMPRESSÉ${entry.profiler.length > 1 ? ` (${index + 1})` : ''}`));
-    content.append(result.error ? el('p', result.error, 'error') : el('pre', result.text === '' ? '(contenu vide)' : result.text));
+    content.append(el('h3', `EXPLORATEUR DU PROFILER${entry.profiler.length > 1 ? ` (${index + 1})` : ''}`));
+    content.append(result.error ? el('p', result.error, 'error') : profilerView(result.text));
   });
-  content.append(el('h3', 'VALEUR BRUTE — BASE64'), el('pre', entry.profiler.map(value => value || '(valeur vide)').join('\n')));
-  content.append(el('h3', 'TOUS LES HEADERS DE RÉPONSE'));
-  content.append(el('pre', entry.headers.map(header => `${header?.name ?? ''}: ${header?.value ?? ''}`).join('\n')));
+  content.append(rawSection('Valeur brute — Base64', entry.profiler.map(value => value || '(valeur vide)').join('\n')));
+  content.append(rawSection('Tous les headers de réponse', entry.headers.map(header => `${header?.name ?? ''}: ${header?.value ?? ''}`).join('\n')));
   $('details').showModal();
 }
 
 function render() {
   const query = $('search').value.trim().toLowerCase();
   const matches = data?.matches ?? [];
-  const filtered = matches.filter(entry => [entry.url, entry.method, String(entry.status), ...entry.profiler, ...entry.decodedProfiler.map(result => result.text ?? '')].some(value => value.toLowerCase().includes(query)));
+  const filtered = sortRequests(matches.filter(entry => [entry.url, entry.method, String(entry.status), ...entry.profiler, ...entry.decodedProfiler.map(result => result.text ?? '')].some(value => value.toLowerCase().includes(query))), sortKey, sortDirection);
+  document.querySelectorAll('[data-sort]').forEach(button => {
+    const active = button.dataset.sort === sortKey;
+    button.closest('th').setAttribute('aria-sort', active ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none');
+    button.querySelector('.sort-icon').textContent = active ? (sortDirection === 'asc' ? '↑' : '↓') : '↕';
+  });
   $('total').textContent = data ? data.total.toLocaleString('fr-FR') : '—';
   $('matched').textContent = data ? matches.length.toLocaleString('fr-FR') : '—';
   $('ratio').textContent = data ? `${data.total ? Math.round(matches.length / data.total * 100) : 0} %` : '—';
@@ -53,7 +61,7 @@ function render() {
     urlCell.append(el('div', path, 'url-path'), el('div', host, 'url-host'));
     const status = el('td', String(entry.status ?? '—'), `status ${entry.status >= 400 ? 'bad' : ''}`);
     const profiler = el('td');
-    const value = entry.decodedProfiler.map(result => result.error ? `⚠ ${result.error}` : result.text === '' ? '(contenu vide)' : result.text).join('\n');
+    const value = profilerText(entry);
     profiler.append(el('code', value));
     profiler.title = value;
     const action = el('td');
@@ -144,6 +152,13 @@ $('dropzone').addEventListener('drop', event => {
   importFile(event.dataTransfer.files[0]);
 });
 $('search').addEventListener('input', render);
+document.querySelectorAll('[data-sort]').forEach(button => {
+  button.addEventListener('click', () => {
+    sortDirection = sortKey === button.dataset.sort && sortDirection === 'asc' ? 'desc' : 'asc';
+    sortKey = button.dataset.sort;
+    render();
+  });
+});
 $('clear').addEventListener('click', () => {
   generation++;
   data = null;
@@ -169,7 +184,7 @@ $('demo').addEventListener('click', () => {
     request: { method: i === 2 ? 'POST' : 'GET', url: `https://demo.example.com${path}` },
     response: { status: i === 7 ? 401 : 200, headers: [
       { name: 'content-type', value: 'application/json' },
-      ...(i < 5 ? [{ name: i === 1 ? 'X-Cat-Profiler' : 'x-cat-profiler', value: 'H4sIAAAAAAACA3OtSM0tyElVSElVKCjKT8vMUbBSKDq8siA/rzhVIf3wyrzDK4HcVIXUPAUTI4XcYgC7HsjeMAAAAA==' }] : []),
+      ...(i < 5 ? [{ name: i === 1 ? 'X-Cat-Profiler' : 'x-cat-profiler', value: 'H4sIAAAAAAACA02OOw7CMBBEe07hI0AAiWYrCiSUhnACQ7aw5NjJfrhTqLmBL0ZiQ2DLmae3A9DgoOkpaG5RxQ2KBsDsqo5XMN0xBqH08qiU8/UnB6jxLkpoWmTTU2zVCc9IdVgQ+MmvlzqX279ycj+Q2MWQJZRGVi+2aPYLeEpjSCNZKaDxdkb7GDhP3XynnqNSsN5xIedvHb8BoqGwveAAAAA=' }] : []),
     ] }, time: [124, 86, 218, 42, 167, 12, 8, 56][i],
   })) } };
   const text = JSON.stringify(sample);

@@ -21,8 +21,10 @@ Si npm est installé, `npm start` lance le même serveur Python.
 - Sélectionner ou déposer un fichier `.har` ou `.json`.
 - Consulter le nombre total de requêtes et les réponses avec le header recherché.
 - Filtrer par URL, méthode, statut ou valeur du header.
+- Cliquer sur un en-tête de colonne pour trier par méthode, URL complète, statut, durée ou contenu décompressé. Un second clic inverse le tri ; la flèche indique le sens. Statuts et durées sont triés numériquement, les durées absentes restent en fin de liste. Le tri reste actif pendant la recherche et les imports suivants.
 - Ouvrir le détail d’une ligne pour voir la valeur complète et tous les headers de réponse.
 - Le header est décodé depuis Base64, puis décompressé avec gzip et lu en UTF-8. Le tableau affiche ce texte et la recherche porte aussi sur son contenu. Le détail conserve la valeur brute. Une valeur invalide affiche une erreur sans masquer les autres requêtes.
+- Le détail présente un explorateur des étapes : cliquer sur une étape pour déplier ses enfants, ou utiliser « Tout déplier » / « Tout replier ». Chaque étape affiche sa durée inclusive et une barre représentant sa part dans la durée de sa racine. Le texte décompressé et le Base64 restent accessibles dans des sections repliables.
 - « Explorer un exemple » charge des données fictives pour essayer l’interface.
 
 Le filtre ne tient compte que des headers de **réponse**. Les valeurs vides et les headers répétés sont conservés. Le détail présente les valeurs complètes. Le raccourci `/` place le curseur dans la recherche et Échap ferme le détail.
@@ -46,6 +48,8 @@ Les tests vérifient également le décodage Base64/gzip, le texte Unicode et le
 Sans npm, utiliser directement `node --test`.
 
 ## Documentation
+
+Le format de profilage reconnu est `==Nom de l’étape == 55ms`. Chaque paire de `=` initiale ajoute un niveau (`==`, `====`, `======`…). Les niveaux sautés sont rattachés au dernier ancêtre moins profond, sans inventer d’étapes. Les durées affichées sont celles du fichier, sans additionner parents et enfants. Les lignes non reconnues sont signalées et restent consultables.
 
 - [Architecture, fonctionnement et hébergement](docs/architecture.md)
 - [Guide de contribution et vérifications](CONTRIBUTING.md)
