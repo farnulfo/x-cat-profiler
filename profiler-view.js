@@ -13,7 +13,7 @@ export function rawSection(title, text) {
   return section;
 }
 
-export function profilerView(text) {
+export function profilerView(text, targetLine = null) {
   const profile = parseProfiler(text);
   const view = element('section', undefined, 'profiler-view');
   if (!profile.count) {
@@ -45,6 +45,13 @@ export function profilerView(text) {
       row.append(meter, element('span', `${node.time.toLocaleString('fr-FR', { maximumFractionDigits: 20 })} ms`, 'profiler-time'));
       wrapper.append(row);
       container.append(wrapper);
+      if (node.line === targetLine) {
+        row.classList.add('profiler-selected');
+        row.tabIndex = -1;
+        for (let parent = container; parent && parent !== tree; parent = parent.parentElement) {
+          if (parent.tagName === 'DETAILS') parent.open = true;
+        }
+      }
       if (branch) {
         wrapper.open = depth < 2;
         const children = element('div', undefined, 'profiler-children');

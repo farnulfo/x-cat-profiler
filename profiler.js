@@ -11,7 +11,7 @@ export function parseProfiler(text) {
       unparsed.push({ line: index + 1, text: line });
       return;
     }
-    const node = { name: match[2].trim(), level: match[1].length / 2, time: Number(match[3].replace(',', '.')), children: [] };
+    const node = { name: match[2].trim(), level: match[1].length / 2, time: Number(match[3].replace(',', '.')), line: index + 1, children: [] };
     while (stack.length && stack.at(-1).level >= node.level) stack.pop();
     (stack.length ? stack.at(-1).children : roots).push(node);
     stack.push(node);
