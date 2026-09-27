@@ -1,8 +1,8 @@
-import { parseHar } from './har.js';
-import { decodeProfiler } from './profiler.js';
-import { profilerView, rawSection } from './profiler-view.js';
-import { profilerText, sortRequests } from './request-sort.js';
-import { analyzeProfilers } from './profiler-analysis.js';
+import { parseHar } from './har.js?v=c5fdbb3a5c89cd63';
+import { decodeProfiler } from './profiler.js?v=12fcef1aaf3a9acd';
+import { profilerView, rawSection } from './profiler-view.js?v=aeea0ec311c64238';
+import { profilerText, sortRequests } from './request-sort.js?v=7f653a0270a265bd';
+import { analyzeProfilers } from './profiler-analysis.js?v=0c1a520199778328';
 
 const $ = id => document.getElementById(id);
 let data = null;
@@ -152,6 +152,7 @@ async function importFile(file, demo = false) {
   const current = ++generation;
   $('error').hidden = true;
   $('choose').disabled = true;
+  $('choose').setAttribute('aria-busy', 'true');
   $('choose').textContent = 'Analyse en cours…';
   try {
     const text = await file.text();
@@ -164,6 +165,7 @@ async function importFile(file, demo = false) {
   } finally {
     if (current === generation) {
       $('choose').disabled = false;
+      $('choose').removeAttribute('aria-busy');
       $('choose').textContent = '＋ Choisir un fichier';
       $('file').value = '';
     }
@@ -207,6 +209,7 @@ $('clear').addEventListener('click', () => {
   $('file-info').hidden = true;
   $('error').hidden = true;
   $('choose').disabled = false;
+  $('choose').removeAttribute('aria-busy');
   $('choose').textContent = '＋ Choisir un fichier';
   render();
 });
