@@ -1,4 +1,4 @@
-import { parseProfiler } from './profiler.js';
+import { parseProfiler } from './profiler.js?v=12fcef1aaf3a9acd';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);

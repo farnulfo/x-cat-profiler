@@ -49,3 +49,7 @@ Pour une modification de l’interface, vérifier manuellement :
 11. L’analyse globale de l’exemple compte 35 étapes dans 5 requêtes profilées, même si la recherche masque toutes les lignes. Elle affiche dix résultats. Cliquer sur un résultat ouvre la bonne requête et surligne l’étape dans l’explorateur. Un nouvel import et « Retirer » effacent le classement.
 
 Les tests automatisés couvrent le parseur ; ils ne remplacent pas une vérification de l’interface dans le navigateur.
+
+## Préparer la publication
+
+Après toute modification JavaScript ou CSS, exécuter `python3 scripts/version-assets.py`, puis les tests. Ce script ajoute une empreinte du contenu aux URL des ressources et de leurs imports. Publier les fichiers modifiés ensemble pour qu’une nouvelle page charge les versions correspondantes, même si le navigateur conserve les anciennes en cache.

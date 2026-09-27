@@ -1,4 +1,4 @@
-import { parseProfiler } from './profiler.js';
+import { parseProfiler } from './profiler.js?v=12fcef1aaf3a9acd';
 
 export function analyzeProfilers(entries) {
   const top = [];
