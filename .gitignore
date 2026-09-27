@@ -1,0 +1,23 @@
+# Captures réseau locales (potentiellement confidentielles)
+*.har
+/captures/
+
+# Dépendances et résultats de tests
+node_modules/
+coverage/
+*.log
+
+# Configuration locale et secrets
+.env
+.env.*
+!.env.example
+.agents/
+.codex/
+
+# Éditeurs et système
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*~

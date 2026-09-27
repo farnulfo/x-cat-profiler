@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f9">
+  <title>Cat Profiler — Inspecteur HAR</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Cat Profiler, accueil"><span class="logo">⌘</span> cat<span class="brand-light">profiler</span><span class="product-tag">HAR INSPECTOR</span></a>
+    <span class="local-badge"><span></span> 100 % local</span>
+  </header>
+  <main>
+    <div class="intro"><div><div class="eyebrow">VOTRE TRAFIC, EN CLAIR</div><h1>Repérez les requêtes profilées.</h1><p>Importez un HAR. Retrouvez les réponses contenant <code>x-cat-profiler</code>.</p></div><button id="demo" class="button secondary">Explorer un exemple <span aria-hidden="true">↗</span></button></div>
+    <section id="dropzone" class="dropzone" aria-label="Importer un fichier HAR">
+      <div class="upload-icon" aria-hidden="true">↥</div>
+      <h2>Déposez votre fichier HAR ici</h2>
+      <p>ou sélectionnez-le depuis votre ordinateur</p>
+      <button id="choose" class="button primary"><span aria-hidden="true">＋</span> Choisir un fichier</button>
+      <input id="file" type="file" accept=".har,.json,application/json" hidden>
+      <div class="upload-note">.har ou .json <span>·</span> Aucun fichier envoyé sur un serveur</div>
+    </section>
+    <p id="error" class="error" role="alert" hidden></p>
+    <div id="file-info" class="file-info" hidden><div><span class="file-icon" aria-hidden="true">▤</span><strong id="file-name"></strong><span id="file-size"></span><span id="demo-tag" class="tag" hidden>EXEMPLE</span></div><button id="clear" class="text-button">Retirer ×</button></div>
+    <section class="stats" aria-label="Résumé de l’analyse">
+      <div class="stat"><span>Requêtes dans le HAR</span><div><strong id="total">—</strong><span class="stat-icon">↔</span></div></div>
+      <div class="stat highlighted"><span>Avec x-cat-profiler</span><div><strong id="matched">—</strong><span class="stat-icon">⌁</span></div></div>
+      <div class="stat"><span>Part des requêtes profilées</span><div><strong id="ratio">—</strong><span class="stat-icon">◔</span></div></div>
+    </section>
+    <section class="results">
+      <div class="results-heading"><div><h2>Requêtes profilées <span id="count" class="count">0</span></h2><p>Seules les réponses avec le header recherché apparaissent ici.</p></div><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Rechercher une URL, un header…" aria-label="Rechercher parmi les requêtes profilées" disabled><kbd>/</kbd></label></div>
+      <div class="table-scroll"><table><thead><tr><th>MÉTHODE</th><th>URL DE LA REQUÊTE</th><th>STATUT</th><th>DURÉE</th><th>X-CAT-PROFILER</th><th><span class="sr-only">Détail</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+      <div id="empty" class="empty"><div class="empty-icon" aria-hidden="true">⌁</div><h3>Tout commence par un fichier HAR</h3><p>Importez votre capture réseau pour explorer<br>les requêtes contenant <code>x-cat-profiler</code>.</p></div>
+      <div class="results-footer"><span id="result-summary" role="status" aria-live="polite">En attente d’un fichier</span><span><span class="green-dot"></span> Headers de réponse uniquement</span></div>
+    </section>
+    <aside class="help"><span class="info-icon" aria-hidden="true">i</span><div><h3>Comment obtenir un fichier HAR ?</h3><p>Ouvrez les outils de développement de votre navigateur → <strong>Réseau / Network</strong> → rechargez la page,<br class="desktop-break"> puis exportez les requêtes au format HAR.</p></div><span class="help-tag">ASTUCE</span></aside>
+    <footer><span>Moins de bruit. Plus de visibilité.</span><span>Analyse locale <span>·</span> Vos données restent dans votre navigateur</span></footer>
+  </main>
+  <dialog id="details"><div class="dialog-heading"><h2>Détail de la requête</h2><button id="close-details" class="text-button" aria-label="Fermer le détail">Fermer ×</button></div><div id="detail-content"></div></dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
